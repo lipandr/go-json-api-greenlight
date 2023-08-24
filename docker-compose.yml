@@ -1,0 +1,35 @@
+version: "3"
+services:
+  greenlight:
+    build:
+      dockerfile: ./cmd/api/main.dockerfile
+    ports:
+      - "4000:4000"
+    container_name: greenlight
+    restart: always
+    depends_on:
+      - postgres
+    deploy:
+      replicas: 1
+      mode: replicated
+    environment:
+      DSN: postgres://greenlight:greenlight@postgres:5432/greenlight?sslmode=disable
+
+
+  postgres:
+    image: 'postgres:latest'
+    container_name: postgres
+    restart: always
+    environment:
+      - POSTGRES_DB=greenlight
+      - POSTGRES_USER=greenlight
+      - POSTGRES_PASSWORD=greenlight
+    volumes:
+      - ./db/data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U postgres"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
